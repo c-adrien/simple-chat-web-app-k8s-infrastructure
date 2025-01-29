@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: web
+spec:
+  replicas: 2 # Set the number of replicas
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: adriencalt/simple-chat-web-app:latest
+          resources:
+            requests:
+              memory: "128Mi" # Minimum memory request
+              cpu: "100m" # Minimum CPU request
+            limits:
+              memory: "256Mi" # Maximum memory limit
+              cpu: "200m" # Maximum CPU limit
+          ports:
+            - containerPort: 80
+          env:
+            - name: API_URL
+              value: "https://ma-messagerie.local/api"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: web
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: web

@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  namespace: web
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ma-messagerie.local
+      secretName: web-tls
+  rules:
+    - host: ma-messagerie.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80

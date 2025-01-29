@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-to-prometheus
+  namespace: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: web # Allow traffic from the web namespace
+      ports:
+        - protocol: TCP
+          port: 9090 # Allow traffic on port 9090

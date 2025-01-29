@@ -1,0 +1,6 @@
+*.bkp
+.vscode
+.idea
+*.crt
+*.key
+env.sh

@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-opensearch-index
+  namespace: web
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+        - name: create-index
+          image: curlimages/curl:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              sleep 300 && \
+              curl -s -u "admin:$OPENSEARCH_PASSWORD" -X PUT "http://opensearch.web.svc.cluster.local:9200/messages" -H 'Content-Type: application/json' -d '{
+                "mappings": {
+                  "properties": {
+                    "user": { "type": "text" },
+                    "message": { "type": "text" },
+                    "timestamp": { "type": "date" }
+                  }
+                }
+              }'
+          env:
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-secret
+                  key: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+      restartPolicy: Never

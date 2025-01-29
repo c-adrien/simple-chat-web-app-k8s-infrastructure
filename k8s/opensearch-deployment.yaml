@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch
+  namespace: web
+spec:
+  replicas: 1 # Set the number of replicas
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+        - name: opensearch
+          image: adriencalt/opensearch-custom-prometheus-exporter:2.17.1
+          ports:
+            - containerPort: 9200
+            - containerPort: 9600
+          env:
+            - name: discovery.type
+              value: "single-node"
+            - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opensearch-secret
+                  key: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+            - name: plugins.security.disabled
+              value: "true"
+            - name: http.cors.enabled
+              value: "true"
+            - name: http.cors.allow-origin
+              value: "*" # Autoriser toutes les origines (à ajuster selon vos besoins)
+            - name: http.cors.allow-headers
+              value: "X-Requested-With, Content-Type, Accept, Authorization" # Autoriser les en-têtes spécifiques
+          resources:
+            requests:
+              memory: "1Gi" # Minimum memory request
+              cpu: "250m" # Minimum CPU request
+            limits:
+              memory: "2Gi" # Maximum memory limit
+              cpu: "500m" # Maximum CPU limit
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch
+  namespace: web
+spec:
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+    - name: dashboard
+      port: 9600
+      targetPort: 9600
+  selector:
+    app: opensearch
